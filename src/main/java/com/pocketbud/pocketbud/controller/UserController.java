@@ -20,21 +20,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestParam String username, @RequestParam String email, @RequestParam String password) {
-        if (userService.usernameExists(username)) {
-            return ResponseEntity.badRequest().body("Username already exists.");
-        }
-
-        if (userService.emailExists(email)) {
-            return ResponseEntity.badRequest().body("Email already exists.");
-        }
-
-        // Register the new user
-        userService.registerUser(username, email, password);
-        return ResponseEntity.ok("User registered successfully.");
-    }
-
     // Create new user
     @PostMapping("/create")
     public ResponseEntity<User> createUser(@RequestBody User user) {
@@ -51,14 +36,14 @@ public class UserController {
 
     // Get user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         Optional<User> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Delete user by ID
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }

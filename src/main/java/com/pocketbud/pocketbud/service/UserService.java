@@ -25,14 +25,6 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(String username, String email, String password) {
-        // Encode the password before saving the user
-        String encodedPassword = passwordEncoder.encode(password);
-
-        User user = new User(username, email, encodedPassword);
-        return userRepository.save(user);  // Save user with the encoded password
-    }
-
     public boolean usernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
@@ -52,7 +44,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> getUserById(Integer id) {
         return userRepository.findById(id);
     }
 
@@ -73,7 +65,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(Integer id) {
         userRepository.deleteById(id);
     }
 }

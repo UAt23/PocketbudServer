@@ -1,6 +1,5 @@
-package com.pocketbud.pocketbud.repository;
+package com.pocketbud.pocketbud.category;
 
-import com.pocketbud.pocketbud.model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {

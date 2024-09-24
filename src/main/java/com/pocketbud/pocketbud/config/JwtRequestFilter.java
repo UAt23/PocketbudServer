@@ -1,11 +1,14 @@
 package com.pocketbud.pocketbud.config;
 
-import com.pocketbud.pocketbud.service.AuthenticationService;
+import com.pocketbud.pocketbud.token.TokenRepository;
 import jakarta.servlet.ServletException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,41 +18,57 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
+@RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtil;
-    private final AuthenticationService authenticationService;
 
     private final UserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
-
-    public JwtRequestFilter(JwtUtils jwtUtil, AuthenticationService authenticationService, UserDetailsService userDetailsService) {
-        this.jwtUtil = jwtUtil;
-        this.authenticationService = authenticationService;
-        this.userDetailsService = userDetailsService;
-    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+        @NonNull HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    )
+        throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
-        String username = null;
-        String jwt = null;
+        final String userEmail;
+        final String jwt;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            System.out.println("Header nul or bearer non");
+
+            filterChain.doFilter(request, response);
+           return;
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validateToken(jwt, username)) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        jwt = authorizationHeader.substring(7);
+        System.out.println("HEADER" + jwt);
+
+        userEmail = jwtUtil.extractUsername(jwt);
+        System.out.println("FILTER" + userEmail);
+
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            System.out.println("userEmail not null");
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            var isTokenValid = tokenRepository.findByToken(jwt)
+                    .map(t -> !t.isExpired() && !t.isRevoked())
+                    .orElse(false);
+            if (jwtUtil.validateToken(jwt, userDetails) && isTokenValid) {
+                System.out.println("JWT validated and token valid");
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
-        chain.doFilter(request, response);
+        filterChain.doFilter(request, response);
     }
 }
