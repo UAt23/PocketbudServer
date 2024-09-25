@@ -2,8 +2,11 @@ package com.pocketbud.pocketbud.repository;
 
 import com.pocketbud.pocketbud.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
+@Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     // Find a user by their username
     User findByUsername(String username);

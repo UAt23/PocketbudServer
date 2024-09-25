@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,14 +48,12 @@ public class TransactionService {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
 
-        Set<Tag> tags = new HashSet<>();
-        if (requestDTO.getTagIds() != null) {
-            for (Long tagId : requestDTO.getTagIds()) {
-                Tag tag = tagRepository.findById(tagId)
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid tag ID"));
-                tags.add(tag);
-            }
+        List<Long> tags = new ArrayList<>();
+        if (requestDTO.getTagIds() != null && !requestDTO.getTagIds().isEmpty()) {
+            tags = requestDTO.getTagIds();
         }
+
+        System.out.println("Creating transaction with tags: " + tags);
 
         Transaction transaction = Transaction.builder()
                 .amount(requestDTO.getAmount())
@@ -63,9 +62,9 @@ public class TransactionService {
                 .category(category) // Assume this is handled
                 .type(requestDTO.getType())
                 .isRepeated(requestDTO.getIsRepeated())
+                .tags(tags)
                 .isIrregular(requestDTO.getIsIrregular())
                 .description(requestDTO.getDescription())  // Set description
-                .tags(tags)
                 .recurrenceInterval(requestDTO.getRecurrenceInterval())  // Set recurrence interval
                 .recurrenceUnit(requestDTO.getRecurrenceUnit())  // Set recurrence unit
                 .build();
@@ -111,13 +110,8 @@ public class TransactionService {
         transaction.setRecurrenceUnit(requestDTO.getRecurrenceUnit());
 
         // Handle tags
-        if (requestDTO.getTagIds() != null) {
-            Set<Tag> tags = new HashSet<>();
-            for (Long tagId : requestDTO.getTagIds()) {
-                Tag tag = tagRepository.findById(tagId)
-                        .orElseThrow(() -> new RuntimeException("Tag not found"));
-                tags.add(tag);
-            }
+        if (requestDTO.getTagIds() != null && !requestDTO.getTagIds().isEmpty()) {
+            List<Long> tags = requestDTO.getTagIds();
             transaction.setTags(tags);  // Set updated tags
         }
 

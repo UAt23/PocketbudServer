@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -17,7 +18,7 @@ public class TransactionRequestDTO {
     private Boolean isRepeated;
     private Boolean isIrregular;
     private String description;  // New field
-    private Set<Long> tagIds;
+    private List<Long> tagIds;
     private Integer recurrenceInterval;  // New field for recurrence interval
     private ChronoUnit recurrenceUnit;   // New field for recurrence unit
 }

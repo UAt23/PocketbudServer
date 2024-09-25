@@ -40,7 +40,6 @@ public class Category {
     @Column(nullable = true, name = "transactions")
     private Set<Transaction> transactions;
 
-    @ManyToOne
     @JoinColumn(name = "category_group_id")
-    private CategoryGroup categoryGroup;  // Add relationship to CategoryGroup
+    private Long categoryGroupId;  // Add relationship to CategoryGroup
 }

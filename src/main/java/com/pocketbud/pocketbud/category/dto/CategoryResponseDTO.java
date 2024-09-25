@@ -2,6 +2,8 @@ package com.pocketbud.pocketbud.category.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CategoryResponseDTO {
     private Long id;
@@ -10,4 +12,5 @@ public class CategoryResponseDTO {
     private String type;  // INCOME or EXPENSE
     private String icon;
     private String color;
+    private Long categoryGroupId;
 }

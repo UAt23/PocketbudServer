@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -24,6 +25,4 @@ public class Tag {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
-    private Set<Transaction> transactions;
 }

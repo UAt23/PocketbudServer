@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -50,18 +53,13 @@ public class Transaction {
 
     private Boolean isIrregular; // Flag for irregular transactions
 
-    @ManyToMany
-    @JoinTable(
-            name = "transaction_tags",
-            joinColumns = @JoinColumn(name = "transaction_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
-    private Set<Tag> tags;  // New field for tags
+
+    @ElementCollection
+    private List<Long> tags = new ArrayList<>();
 
     @Column(nullable = true)
     private Integer recurrenceInterval;  // How often the transaction repeats (e.g., every 1 day, 1 week)
 
     @Enumerated(EnumType.STRING)
     private ChronoUnit recurrenceUnit;  // Time unit for recurrence (days, weeks, months, etc.)
-
 }

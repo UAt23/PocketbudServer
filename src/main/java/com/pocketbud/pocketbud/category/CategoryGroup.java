@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -23,11 +24,14 @@ public class CategoryGroup {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column
+    private String description;
+
+    @Column(nullable = false, name = "group_allowance")
     private Double groupAllowance;  // Total allowance for this category group
 
-    @OneToMany(mappedBy = "categoryGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Category> categories;
+    @OneToMany(mappedBy = "categoryGroupId", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Category> categories;
 
     public void updateGroupAllowance(Double newAllowance) {
         this.groupAllowance = newAllowance;
