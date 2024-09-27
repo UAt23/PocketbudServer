@@ -8,7 +8,5 @@ import java.util.List;
 @Data
 public class CategoryGroupRequestDTO {
     private String name;
-    private Double groupAllowance;
     private String description;
-    private List<Long> categories;
 }

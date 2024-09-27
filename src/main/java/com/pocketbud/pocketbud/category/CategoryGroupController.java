@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/category-groups")
 @RequiredArgsConstructor
@@ -30,10 +31,10 @@ public class CategoryGroupController {
         return ResponseEntity.ok(group);
     }
 
-    // Create or update category group
+    // Create category group
     @PostMapping
-    public ResponseEntity<CategoryGroupResponseDTO> createOrUpdateCategoryGroup(@RequestBody CategoryGroupRequestDTO requestDTO) {
-        CategoryGroupResponseDTO createdGroup = categoryGroupService.createOrUpdateCategoryGroup(requestDTO);
+    public ResponseEntity<CategoryGroupResponseDTO> createCategoryGroup(@RequestBody CategoryGroupRequestDTO requestDTO) {
+        CategoryGroupResponseDTO createdGroup = categoryGroupService.createCategoryGroup(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGroup);
     }
 

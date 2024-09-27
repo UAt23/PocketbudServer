@@ -1,9 +1,11 @@
 package com.pocketbud.pocketbud.transaction.dto;
 
+import com.pocketbud.pocketbud.tag.Tag;
 import com.pocketbud.pocketbud.transaction.TransactionType;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class TransactionResponseDTO {
@@ -16,4 +18,5 @@ public class TransactionResponseDTO {
     private Integer userId;        // ID of the user who performed the transaction
     private Boolean isRepeated;
     private Boolean isIrregular;
+    private Set<Tag> tags;
 }

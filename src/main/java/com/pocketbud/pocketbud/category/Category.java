@@ -28,6 +28,9 @@ public class Category {
     private Double allowance;  // Amount allocated for this category
 
     @Column(nullable = false)
+    private Double currentAllowance = 0.0;  // The remaining allowance after expenses
+
+    @Column(nullable = false)
     private String type;  // "INCOME" or "EXPENSE"
 
     @Column(nullable = true)
@@ -42,4 +45,6 @@ public class Category {
 
     @JoinColumn(name = "category_group_id")
     private Long categoryGroupId;  // Add relationship to CategoryGroup
+
+
 }

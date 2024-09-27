@@ -13,17 +13,34 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryGroupRepository categoryGroupRepository;
+
 
     // Create or update a category
-    public CategoryResponseDTO createOrUpdateCategory(CategoryRequestDTO requestDTO) {
+    public CategoryResponseDTO createCategory(CategoryRequestDTO requestDTO) {
         Category category = new Category();
         category.setName(requestDTO.getName());
         category.setAllowance(requestDTO.getAllowance());
+        category.setCurrentAllowance(requestDTO.getAllowance());
         category.setType(requestDTO.getType());
         category.setIcon(requestDTO.getIcon());
         category.setColor(requestDTO.getColor());
 
+
+        if(categoryGroupRepository.findById(requestDTO.getCategoryGroupId()).isPresent()) {
+            category.setCategoryGroupId(requestDTO.getCategoryGroupId());
+            // TODO GROUP ALLOWANCE UPDATE
+            CategoryGroup belongingGroup = categoryGroupRepository.findById(requestDTO.getCategoryGroupId()).get();
+            belongingGroup.getCategories().add(category);
+            System.out.println(belongingGroup);
+            belongingGroup.setCurrentGroupAllowance(requestDTO.getAllowance());
+            belongingGroup.setGroupAllowance();
+        }
+
         category = categoryRepository.save(category);
+
+
+
         return mapToDTO(category);
     }
 
@@ -53,9 +70,11 @@ public class CategoryService {
         dto.setId(category.getId());
         dto.setName(category.getName());
         dto.setAllowance(category.getAllowance());
+        dto.setCurrentAllowance(category.getCurrentAllowance());
         dto.setType(category.getType());
         dto.setIcon(category.getIcon());
         dto.setColor(category.getColor());
+        dto.setCategoryGroupId(category.getCategoryGroupId());
         return dto;
     }
 }

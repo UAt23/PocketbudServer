@@ -21,25 +21,26 @@ public class CategoryGroupService {
     private final CategoryRepository categoryRepository;
 
     // Create or update category group
-    public CategoryGroupResponseDTO createOrUpdateCategoryGroup(CategoryGroupRequestDTO requestDTO) {
+    public CategoryGroupResponseDTO createCategoryGroup(CategoryGroupRequestDTO requestDTO) {
+
+
         CategoryGroup group = new CategoryGroup();
         group.setName(requestDTO.getName());
-        group.setGroupAllowance(requestDTO.getGroupAllowance());
         group.setDescription(requestDTO.getDescription());
+
 
         // Save the CategoryGroup first to generate an ID
         CategoryGroup savedGroup = categoryGroupRepository.save(group);
 
         // Fetch categories using the provided category IDs
-        List<Category> categories = categoryRepository.findAllById(requestDTO.getCategories());
-
-        group.setCategories(categories);
-
-        // Set the categoryGroupId for each category without setting the whole CategoryGroup object
-        categories.forEach(category -> category.setCategoryGroupId(savedGroup.getId()));
-
-        // Save the updated categories
-        categoryRepository.saveAll(categories);
+//        List<Category> categories = categoryRepository.findAllById(requestDTO.getCategories());
+//        group.setCategories(categories);
+//
+//        // Set the categoryGroupId for each category without setting the whole CategoryGroup object
+//        categories.forEach(category -> category.setCategoryGroupId(savedGroup.getId()));
+//
+//        // Save the updated categories
+//        categoryRepository.saveAll(categories);
 
         return mapToDTO(group);
     }
@@ -71,7 +72,7 @@ public class CategoryGroupService {
         dto.setId(group.getId());
         dto.setName(group.getName());
         dto.setGroupAllowance(group.getGroupAllowance());
-
+        dto.setCurrentGroupAllowance(group.getCurrentGroupAllowance());
         if (group.getCategories() != null && !group.getCategories().isEmpty()) {
             // Map categories without fetching the whole CategoryGroup object
             dto.setCategories(
@@ -81,6 +82,7 @@ public class CategoryGroupService {
                                 categoryDTO.setId(category.getId());
                                 categoryDTO.setName(category.getName());
                                 categoryDTO.setAllowance(category.getAllowance());
+                                categoryDTO.setCurrentAllowance(category.getCurrentAllowance());
                                 categoryDTO.setType(category.getType());
                                 categoryDTO.setIcon(category.getIcon());
                                 categoryDTO.setColor(category.getColor());

@@ -11,5 +11,5 @@ public class CategoryRequestDTO {
     private String type;  // INCOME or EXPENSE
     private String icon;
     private String color;
-    private List<Integer> categoryGroupIds;
+    private Long categoryGroupId;
 }

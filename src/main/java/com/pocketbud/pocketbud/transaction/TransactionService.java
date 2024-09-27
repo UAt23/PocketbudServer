@@ -1,6 +1,8 @@
 package com.pocketbud.pocketbud.transaction;
 
 import com.pocketbud.pocketbud.category.Category;
+import com.pocketbud.pocketbud.category.CategoryGroup;
+import com.pocketbud.pocketbud.category.CategoryGroupRepository;
 import com.pocketbud.pocketbud.model.User;
 import com.pocketbud.pocketbud.category.CategoryRepository;
 import com.pocketbud.pocketbud.repository.UserRepository;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+    private final CategoryGroupRepository categoryGroupRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
 
@@ -48,12 +50,10 @@ public class TransactionService {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
 
-        List<Long> tags = new ArrayList<>();
+        Set<Tag> tags = new HashSet<>();
         if (requestDTO.getTagIds() != null && !requestDTO.getTagIds().isEmpty()) {
-            tags = requestDTO.getTagIds();
+            tagCreator(requestDTO, tags);
         }
-
-        System.out.println("Creating transaction with tags: " + tags);
 
         Transaction transaction = Transaction.builder()
                 .amount(requestDTO.getAmount())
@@ -62,14 +62,19 @@ public class TransactionService {
                 .category(category) // Assume this is handled
                 .type(requestDTO.getType())
                 .isRepeated(requestDTO.getIsRepeated())
-                .tags(tags)
                 .isIrregular(requestDTO.getIsIrregular())
                 .description(requestDTO.getDescription())  // Set description
+                .tags(tags)
                 .recurrenceInterval(requestDTO.getRecurrenceInterval())  // Set recurrence interval
                 .recurrenceUnit(requestDTO.getRecurrenceUnit())  // Set recurrence unit
                 .build();
 
         transactionRepository.save(transaction);
+
+        // If this is an EXPENSE transaction, reduce category allowance
+        if (transaction.getType() == TransactionType.EXPENSE) {
+            updateCategoryAllowance(transaction);
+        }
 
         // If it's a recurring transaction, create future occurrences
         if (transaction.getIsRepeated()) {
@@ -111,7 +116,8 @@ public class TransactionService {
 
         // Handle tags
         if (requestDTO.getTagIds() != null && !requestDTO.getTagIds().isEmpty()) {
-            List<Long> tags = requestDTO.getTagIds();
+            Set<Tag> tags = new HashSet<>();
+            tagCreator(requestDTO, tags);
             transaction.setTags(tags);  // Set updated tags
         }
 
@@ -127,7 +133,27 @@ public class TransactionService {
         }
 
         transactionRepository.save(transaction);
+
+        // If this is an EXPENSE transaction, reduce category allowance
+        if (transaction.getType() == TransactionType.EXPENSE) {
+            updateCategoryAllowance(transaction);
+        }
+
         return mapToDTO(transaction);
+    }
+
+    private void tagCreator(TransactionRequestDTO requestDTO, Set<Tag> tags) {
+        for (Long tagId : requestDTO.getTagIds()) {
+            Tag tag = tagRepository.findById(tagId)
+                    .orElseGet(() -> {
+                        // Create a new tag if it doesn't exist
+                        Tag newTag = new Tag();
+                        newTag.setId(tagId);  // Assuming tagId is set, or else use some other unique identifier.
+                        newTag.setName("Default Tag Name");  // Set a default name or get from requestDTO if available
+                        return tagRepository.save(newTag);  // Save and return the new tag
+                    });
+            tags.add(tag);
+        }
     }
 
     // Delete a transaction
@@ -155,6 +181,7 @@ public class TransactionService {
         dto.setUserId(transaction.getUser().getId());
         dto.setIsRepeated(transaction.getIsRepeated());
         dto.setIsIrregular(transaction.getIsIrregular());
+        dto.setTags(transaction.getTags());
         return dto;
     }
 
@@ -186,4 +213,33 @@ public class TransactionService {
             transactionRepository.deleteAll(futureTransactions);
         }
     }
+
+    private void updateCategoryAllowance(Transaction transaction) {
+        Category category = transaction.getCategory();
+
+        // Reduce the category's current allowance by the transaction amount
+        double newAllowance = category.getCurrentAllowance() - transaction.getAmount();
+        category.setCurrentAllowance(newAllowance);
+
+        // Save the updated category
+        categoryRepository.save(category);
+
+        if(categoryGroupRepository.findById(category.getCategoryGroupId()).isPresent())
+            // Recalculate the CategoryGroup's current allowance
+            updateCategoryGroupAllowance(categoryGroupRepository.findById(category.getCategoryGroupId()).get());
+    }
+
+    private void updateCategoryGroupAllowance(CategoryGroup categoryGroup) {
+        // Calculate the new total allowance for the category group
+        double totalAllowance = categoryGroup.getCategories()
+                .stream()
+                .mapToDouble(Category::getCurrentAllowance)
+                .sum();
+
+        categoryGroup.setCurrentGroupAllowance(totalAllowance);
+
+        // Save the updated category group
+        categoryGroupRepository.save(categoryGroup);
+    }
+
 }

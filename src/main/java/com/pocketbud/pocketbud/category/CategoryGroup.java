@@ -28,12 +28,22 @@ public class CategoryGroup {
     private String description;
 
     @Column(nullable = false, name = "group_allowance")
-    private Double groupAllowance;  // Total allowance for this category group
+    private Double groupAllowance = 0.0;  // Total allowance for this category group
+
+    @Column(nullable = false)
+    private Double currentGroupAllowance = 0.0;  // The remaining allowance of all categories combined
 
     @OneToMany(mappedBy = "categoryGroupId", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Category> categories;
 
-    public void updateGroupAllowance(Double newAllowance) {
-        this.groupAllowance = newAllowance;
+    public void setGroupAllowance() {
+        if (categories != null && !categories.isEmpty())
+            this.groupAllowance = categories.stream().mapToDouble(Category::getAllowance).sum();
+        else
+            this.groupAllowance = 0.0;
+    }
+
+    public void setCurrentGroupAllowance(Double currentGroupAllowance) {
+        this.currentGroupAllowance =  this.groupAllowance + currentGroupAllowance;
     }
 }
