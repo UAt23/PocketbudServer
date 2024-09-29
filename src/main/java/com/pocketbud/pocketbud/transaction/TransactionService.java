@@ -1,5 +1,7 @@
 package com.pocketbud.pocketbud.transaction;
 
+import com.pocketbud.pocketbud.account.Account;
+import com.pocketbud.pocketbud.account.AccountRepository;
 import com.pocketbud.pocketbud.category.Category;
 import com.pocketbud.pocketbud.category.CategoryGroup;
 import com.pocketbud.pocketbud.category.CategoryGroupRepository;
@@ -29,6 +31,7 @@ public class TransactionService {
     private final CategoryGroupRepository categoryGroupRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final AccountRepository accountRepository;
 
     // Retrieve all transactions
     public List<TransactionResponseDTO> getAllTransactions() {
@@ -46,7 +49,9 @@ public class TransactionService {
         User user = userRepository.findById(requestDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
-        // Fetch the category entity
+        Account account = accountRepository.findById(requestDTO.getAccountId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid account ID"));
+
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category ID"));
 
@@ -60,6 +65,7 @@ public class TransactionService {
                 .date(requestDTO.getDate())
                 .user(user) // Assume this is handled
                 .category(category) // Assume this is handled
+                .account(account)
                 .type(requestDTO.getType())
                 .isRepeated(requestDTO.getIsRepeated())
                 .isIrregular(requestDTO.getIsIrregular())
@@ -74,7 +80,15 @@ public class TransactionService {
         // If this is an EXPENSE transaction, reduce category allowance
         if (transaction.getType() == TransactionType.EXPENSE) {
             updateCategoryAllowance(transaction);
+            account.setBalance(account.getBalance() - requestDTO.getAmount());
+            account.setCurrentBudget(account.getCurrentBudget() - requestDTO.getAmount());
         }
+        // If it's an income transaction, update the account balance
+        else if (transaction.getType() == TransactionType.INCOME) {
+            account.setBalance(account.getBalance() + requestDTO.getAmount());
+            account.setCurrentBudget(account.getCurrentBudget() + requestDTO.getAmount());
+        }
+        accountRepository.save(account);
 
         // If it's a recurring transaction, create future occurrences
         if (transaction.getIsRepeated()) {
@@ -178,6 +192,7 @@ public class TransactionService {
         dto.setType(TransactionType.valueOf(transaction.getType().name()));
         dto.setDescription(transaction.getDescription());
         dto.setCategoryName(transaction.getCategory().getName());
+        dto.setAccountId(transaction.getAccount().getId());
         dto.setUserId(transaction.getUser().getId());
         dto.setIsRepeated(transaction.getIsRepeated());
         dto.setIsIrregular(transaction.getIsIrregular());

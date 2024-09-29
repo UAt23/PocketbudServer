@@ -1,5 +1,6 @@
 package com.pocketbud.pocketbud.transaction;
 
+import com.pocketbud.pocketbud.account.Account;
 import com.pocketbud.pocketbud.category.Category;
 import com.pocketbud.pocketbud.tag.Tag;
 import com.pocketbud.pocketbud.model.User;
@@ -39,6 +40,10 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

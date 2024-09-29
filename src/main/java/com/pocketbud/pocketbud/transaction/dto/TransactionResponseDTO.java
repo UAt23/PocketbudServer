@@ -16,6 +16,7 @@ public class TransactionResponseDTO {
     private String description;
     private String categoryName;
     private Integer userId;        // ID of the user who performed the transaction
+    private Long accountId;  // Assuming you're passing category ID
     private Boolean isRepeated;
     private Boolean isIrregular;
     private Set<Tag> tags;

@@ -14,6 +14,7 @@ public class TransactionRequestDTO {
     private LocalDate date;
     private Integer userId;  // Assuming you're passing user ID
     private Long categoryId;  // Assuming you're passing category ID
+    private Long accountId;  // Assuming you're passing category ID
     private TransactionType type;
     private Boolean isRepeated;
     private Boolean isIrregular;
